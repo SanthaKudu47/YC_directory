@@ -14,6 +14,7 @@ const config: Config = {
         textP1: "#EF4444",
         p1: "#EE2B69",
         p2: "#FBE843",
+        p3: "#FFE8F0",
       },
     },
   },
