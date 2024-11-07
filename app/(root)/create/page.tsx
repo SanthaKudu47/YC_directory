@@ -1,10 +1,11 @@
+import TextEditor from "@/app/components/common/editor";
 import Header from "@/app/components/header/create";
 
 export default function CreatePage() {
   return (
     <div>
       <Header />
-      <section className="w-full min-w-[350px] md:max-w-[1200px] mx-auto px-5">
+      <section className="w-full min-w-[350px] md:max-w-[900px] mx-auto px-5 md:px-10">
         <div className="flex flex-col justify-center">
           <form action="" className="text-black">
             <div className="flex flex-col gap-y-2 py-2">
@@ -49,6 +50,26 @@ export default function CreatePage() {
                   className="focus:outline-none text-black w-full"
                 />
               </div>
+            </div>
+            <div className="flex flex-col gap-y-2 py-2">
+              <label htmlFor="category_id" className="uppercase font-bold">
+                Image/video link
+              </label>
+              <div className="border-black border-2 border-solid rounded-3xl overflow-hidden p-2">
+                <input
+                  type="text"
+                  id="category_id"
+                  name="title"
+                  placeholder="Past a link to your demo or promotional media"
+                  className="focus:outline-none text-black w-full"
+                />
+              </div>
+            </div>
+            <div className="flex flex-col gap-y-2 py-2">
+              <label htmlFor="category_id" className="uppercase font-bold">
+                pitch
+              </label>
+            <TextEditor/>
             </div>
           </form>
         </div>
