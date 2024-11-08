@@ -5,11 +5,11 @@ import LayoutRow from "./row";
 import ColumnMenu from "./menu/columnMenu";
 import TitleMenu from "./menu/titleMenu";
 import ElementMenu from "./menu/elementMenu";
-import { block, metaDataOfaRow } from "./types";
+import { block, elementType, metaDataOfaRow, titleData } from "./types";
 import AddRowMenu from "./menu/rowMenu";
 import { v4 as uuidv4 } from "uuid";
 
-function generateInitialBlock(id: [string, number]) {
+function generateInitialBlock(id: [string, string]) {
   const initialBlock: block = {
     id: id,
     value: "",
@@ -20,14 +20,17 @@ function generateInitialBlock(id: [string, number]) {
 }
 
 function generateInitialRow(): metaDataOfaRow {
-  const id = uuidv4();
+  const rowId = uuidv4();
+  const blockId1 = uuidv4();
+  const blockId2 = uuidv4();
+  const blockId3 = uuidv4();
   return {
-    id: id,
+    id: rowId,
     layout: "col3",
     blocks: [
-      generateInitialBlock([id, 0]),
-      generateInitialBlock([id, 1]),
-      generateInitialBlock([id, 2]),
+      generateInitialBlock([rowId, blockId1]),
+      generateInitialBlock([rowId, blockId2]),
+      generateInitialBlock([rowId, blockId3]),
     ],
   };
 }
@@ -42,8 +45,11 @@ export default function TextEditor() {
   });
   const [data, setData] = useState<metaDataOfaRow[]>([generateInitialRow()]);
   const [selectedRow, setSelectedRow] = useState<string>("");
+  const [selectedBlock, setSelectedBlock] = useState<string>("");
+  const [content, setContent] = useState("");
 
   const { rowMenu, columnMenu } = menuStatus;
+  const isBlockSelected = selectedRow != "" && selectedBlock != "";
 
   function addNewRowOfBlocks(rowsCount = 1) {
     let currentRowCount = rowCount;
@@ -52,7 +58,8 @@ export default function TextEditor() {
       const id = uuidv4();
       const blocks = [];
       for (let index = 0; index < 3; index++) {
-        blocks.push(generateInitialBlock([id, index]));
+        const blockId = uuidv4();
+        blocks.push(generateInitialBlock([id, blockId]));
       }
       const newRow: metaDataOfaRow = {
         id: id,
@@ -67,7 +74,6 @@ export default function TextEditor() {
   }
 
   function removeSelectedRow(rowId: string) {
-    console.log(rowId);
     const remainingRows = data.filter((metaData, index) => {
       return metaData.id != rowId;
     });
@@ -76,20 +82,21 @@ export default function TextEditor() {
     if (newRowCount < 1) newRowCount = 0;
     setRowCount(newRowCount);
     setData(remainingRows);
-    deselect();
+    deselect(rowId);
   }
 
-  function selectRow(id: number) {}
-
-  function selectBlock(rowId: string, blockId: number) {
+  function selectBlock(rowId: string, blockId: string) {
     if (rowId != selectedRow) {
       setSelectedRow(rowId);
     }
-
-    console.log(rowId, blockId);
+    setSelectedBlock(blockId);
   }
 
-  function deselect() {}
+  function deselect(rowId: string) {
+    if (rowId === selectedRow) {
+      setSelectedRow("");
+    }
+  }
 
   function menuOneHandler(rowId: string) {
     const current = { ...menuStatus, columnMenu: !columnMenu };
@@ -103,7 +110,8 @@ export default function TextEditor() {
       if (selectedRow === meta.id) {
         const newBlocks: block[] = [];
         for (let index = 0; index < cols; index++) {
-          newBlocks.push(generateInitialBlock([selectedRow, cols]));
+          const blockId = uuidv4();
+          newBlocks.push(generateInitialBlock([selectedRow, blockId]));
         }
 
         meta.blocks = newBlocks;
@@ -113,14 +121,53 @@ export default function TextEditor() {
     setData(updated);
   }
 
-  console.log(data);
+  function setTitleContentForBlock(titleData: titleData) {
+    const updatedMetaData: metaDataOfaRow[] = [...data];
+    updatedMetaData.forEach((meta, index) => {
+      for (let index = 0; index < meta.blocks.length; index++) {
+        const block = meta.blocks[index];
+        if (block.id[1] === selectedBlock && block.id[0] === selectedRow) {
+          const element: elementType =
+            titleData.type === "large"
+              ? "HEADER_LARGE"
+              : titleData.type === "medium"
+              ? "HEADER_MEDIUM"
+              : "HEADER_SMALL";
+
+          block.elementType = element;
+          block.value = titleData.value;
+        }
+      }
+    });
+    setData(updatedMetaData);
+  }
+
+  function getBlockData() {
+    for (let index = 0; index < data.length; index++) {
+      const row = data[index];
+      if (row.id === selectedRow) {
+        for (let index = 0; index < row.blocks.length; index++) {
+          const block = row.blocks[index];
+          if (block.id[1] === selectedBlock) {
+            return block;
+          }
+        }
+      }
+    }
+    return null;
+  }
 
   return (
     <div className="flex flex-col min-w-[320px] w-full px-2  items-center bg-red-400 gap-y-3 py-2">
       <ElementMenu />
-      <TitleMenu />
+      <TitleMenu
+        isBlockSelected={isBlockSelected}
+        setBlockData={setTitleContentForBlock}
+        blockData={getBlockData()}
+      />
       <AddRowMenu handler={addNewRowOfBlocks} />
       <ColumnMenu layoutHandler={resetLayout} />
+
       <div className="relative h-[500px] w-full rounded-xl  bg-black flex flex-col p-2 gap-y-2">
         {data.map((meta, index) => {
           const { blocks, layout, id } = meta;
@@ -134,6 +181,7 @@ export default function TextEditor() {
               selectedId={selectedRow}
               removeSelectedRow={removeSelectedRow}
               selectBlockHandler={selectBlock}
+              selectedBlockId={selectedBlock}
             />
           );
         })}

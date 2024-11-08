@@ -1,7 +1,30 @@
-import { Dispatch, SetStateAction, useState } from "react";
+import { MdOutlineTitle } from "react-icons/md";
 import { IoCloseCircle } from "react-icons/io5";
 import { RiExchangeFill } from "react-icons/ri";
-import { block, layouts } from "../types";
+import { block, elementType, layouts } from "../types";
+
+function elementsParser(type: elementType | null) {
+  if (type === null) return <></>;
+  switch (type) {
+    case "HEADER_LARGE":
+      return (
+        <div className="flex flex-row gap-x-1 p-1 bg-gray-300 rounded-md max-h-[20px] items-center">
+          <MdOutlineTitle />
+          <div className="text-[8px]">L</div>
+        </div>
+      );
+    case "HEADER_MEDIUM":
+      return (
+        <div className="flex flex-row gap-x-1 p-1 bg-gray-300 rounded-md max-h-[20px] items-center">
+          <MdOutlineTitle />
+          <div className="text-[8px]">M</div>
+        </div>
+      );
+
+    default:
+      break;
+  }
+}
 
 function getColCount(layout: layouts) {
   switch (layout) {
@@ -27,6 +50,7 @@ export default function LayoutRow({
   rowId,
   removeSelectedRow,
   selectBlockHandler,
+  selectedBlockId,
 }: {
   handler: (param: string) => void;
   layout: layouts;
@@ -34,19 +58,18 @@ export default function LayoutRow({
   rowId: string;
   selectedId: string;
   removeSelectedRow: (param: string) => void;
-  selectBlockHandler: (rowId: string, id: number) => void;
-  // selectedBlockId?: number | undefined;
-  // selectRow: () => void;
-  // selectBlock: () => void;
+  selectBlockHandler: (rowId: string, blockId: string) => void;
+  selectedBlockId: string;
 }) {
-  const selectBlock = function (blockId: [string, number]) {
+  const selectBlock = function (blockId: [string, string]) {
     selectBlockHandler(blockId[0], blockId[1]);
   };
+
   return (
     <>
       <div
         className={`${
-          selectedId === rowId && "border-2 border-solid border-gray-600"
+          selectedId === rowId && "border border-solid border-gray-600"
         } relative flex w-full gap-x-3 h-[70px] bg-gray-800 p-1 rounded-md`}
       >
         {blocks.map((blockMeta, index) => {
@@ -56,8 +79,15 @@ export default function LayoutRow({
                 selectBlock(blockMeta.id);
               }}
               key={index}
-              className="flex bg-gray-600 rounded-md w-full overflow-hidden cursor-pointer hover:bg-gray-500"
-            ></div>
+              className={`${
+                selectedId === blockMeta.id[0] &&
+                selectedBlockId === blockMeta.id[1]
+                  ? "border-2 border-solid border-blue-500"
+                  : ""
+              } flex bg-gray-600 rounded-md w-full overflow-hidden cursor-pointer hover:bg-gray-500 p-1`}
+            >
+              {elementsParser(blockMeta.elementType)}
+            </div>
           );
         })}
 
